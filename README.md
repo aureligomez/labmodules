@@ -16,7 +16,7 @@ Terraform version >= 0.7
 
 # main.tf configuration example
     module "vpc"{
-       source = "git::ssh://git@bitbucket.org/claranet-es/terraform.template.vpc.git" //nosotros usamos el repositorio, pero el source puede ser también local o un bucket.
+       source = "git::ssh://git@bitbucket.org/claroes-es/terraform.template.vpc.git" //nosotros usamos el repositorio, pero el source puede ser también local o un bucket.
        env = "${var.general.["env"]}"
        client_name = "${var.general.["client_name"]}"
        domain_name = "${var.general.["domain_name"]}"
