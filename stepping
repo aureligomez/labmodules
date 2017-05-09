@@ -1,0 +1,49 @@
+te clasifico las acciones que recomendamos realizar según complejidad.
+
+Wins a corto plazo
+
+•	Finalizar accesos vía Security Groups. 
+o	Securizar EFS: Faltaba securizar el acceso al EFS. Idealmente crearíamos un nuevo SG (p.ej. prd_efs_sg) y crear una ingress rule en este para el puerto de EFS (2049) abierto para los miembros del SG que toque (la capa de SFTP, por ejemplo). 
+o	Eliminar security Groups con acceso global: Una vez comprobado el funcionamiento correcto de estas interconexiones entre capas (vía telnet o netcat). Deberíamos eliminar el acceso global desde la VPC de producción.
+•	Mejoras puntuales en los scripts de Terraform.
+o	Poner en práctica estándares de nomenclatura en ficheros de terraform: Todas las variables en CamelCase/Mayúscula/Minúscula, namespace de los recursos (proponemos environment_rol_tipoderecurso).
+o	Eliminar referencias estáticas a id de recurso, cambiándolas por variables/inputs siempre que sea necesario.
+•	Replicar cambios para todos los proyectos en todos los entornos.
+•	Modificar IOPS en RDS.
+o	Recordar que el númeor de IOPS en gp2 es de 3 veces el tamaño en GiB del disco. Sacamos el máximo partido de un disco SSD provisionando 1TiB (3000 IOPS + Bursts ocasionales)
+•	Modificar discos en todas las instancias de gp2 a Magnético.
+o	Por el mismo motivo, con discos de 10GiB tenemos unas 30 IOPS en SSD. Con Magnético tenemos unas IOPS siempre del orden del centenar.
+•	Modificar instancias de c3.large a c4.large.
+o	Más modernas, con más ECU y pricing algo inferior (~5% menos).
+
+Wins a medio plazo
+
+•	Hacer modulares los scripts de Terraform.
+o	Comentamos el hacer los recursos independientes del entorno, inyectándolo como variable. Pero creemos que la complejidad añadida con condicionales es demasiado grande y hace ilegible el .tf file, lo más práctico es hacer un scripting modular.
+o	Adjunto un módulo de creación de VPC a modo de ejemplo.
+•	Resolver problema de deploys lentos en la capa de frontends Web.
+o	Este es uno de los temas que nos quedó pendiente de investigar, todo apunta a que la problemática viene provocada por el método de deploy. Es algo que deberíamos revisar.
+•	Crear un test de carga realista o pesimista.
+o	Probar a saturar el sistema para identificar cuellos de botella.
+•	Ajustar IOPS y tamaño de instancias según comportamiento del entorno con carga.
+o	Según el funcionamiento de la plataforma durante los tests de carga, es bastante probable que podamos ajustar más famílias de ciertas capas.
+
+
+Wins a largo plazo
+
+•	Evaluar la conveniencia de uso del servicio de OpsWorks.
+o	Vimos la problemática con los Security Groups cambiados desde Terraform que no se propagan a las Instancias hasta forzar el STOP/START desde OpsWorks.
+o	Seguramente surgiran nuevas problemáticas similares debido a esta gestión de infrastructura dual (Terraform/Opsworks). Es posible que el problema de los deploys lentos en la Capa de Web sean debidos a esto.
+o	En caso de no aprovecharse del todo el servicio de OpsWorks, podriamos beneficiarnos de usar grupos de autoescalado estándards (más flexibles y económicos, aunque menos mantenibles).
+•	Introducir otros servicios propios de AWS
+o	Cómo ya comentamos, cabría la posibilidad de migrar algunas de las funcionalidades a servicios concretos de AWS.
+o	Una de las soluciones para evitar la dependencia con AWS es desarrollar una capa de abstracción para usar los servicios, de manera que se simplifique modificar la infrastructura subyacente.
+
+
+
+
+Si os quedase alguna duda de cualquiera de estos puntos, comentádnoslo sin problema alguno. 
+
+De todos modos, me comentaba Miquel que intentaría agendar con vosotros una call para hacer review sobre estos puntos y sobre la experiencia en general.
+
+Best practices for a special case from: DRM - Systems Engineer
